@@ -1,4 +1,4 @@
-// ==================== EXPANDED GAME DATA ====================
+// ==================== Game Data ++ ====================
 const civData = {
     china: {
         name: "China",
@@ -161,7 +161,6 @@ const civData = {
                 ]
             },
             "corruption_accusation": { title: "Court Intrigue", description: "The corruption accusations, though false, lead to your dismissal. Rival officials take over the project. The wall construction continues without you.", ending: "political_downfall", endingType: "bad" },
-            // Added missing scene keys that are used as nextScene
             "cultural_success": { title: "Cultural Success", description: "Your cultural exchange program succeeds.", ending: "cultural_success", endingType: "mixed" },
             "harsh_success": { title: "Harsh Success", description: "Your harsh methods achieve success but at a cost.", ending: "harsh_success", endingType: "mixed" },
             "defensive_victory": { title: "Defensive Victory", description: "Your defensive strategy pays off.", ending: "defensive_victory", endingType: "good" },
@@ -180,7 +179,7 @@ const civData = {
         }
     },
 
-    // ========== EGYPT (expanded) ==========
+    // ========== Egypt ==========
     egypt: {
         name: "Egypt",
         gameState: {
@@ -308,7 +307,6 @@ const civData = {
                 ]
             },
             "hapi_rituals": { title: "Blessing of the Nile", description: "Your specialized rituals to Hapi are well-received. When the Nile floods slightly better the next year, many attribute it to your actions—whether rightly or not.", ending: "ritual_success", endingType: "mixed" },
-            // Added missing scene keys
             "controversial_success": { title: "Controversial Success", description: "Your success is marred by controversy.", ending: "controversial_success", endingType: "mixed" },
             "harsh_success": { title: "Harsh Success", description: "Your harsh methods achieve success but at a cost.", ending: "harsh_success", endingType: "mixed" },
             "labor_conflict": { title: "Labor Conflict", description: "Tensions among workers lead to conflict.", ending: "labor_conflict", endingType: "bad" },
@@ -332,7 +330,7 @@ const civData = {
         }
     },
 
-    // ========== MESOPOTAMIA (expanded) ==========
+    // ========== Mesopotamia ==========
     mesopotamia: {
         name: "Mesopotamia",
         gameState: {
@@ -460,7 +458,6 @@ const civData = {
                 ]
             },
             "corruption_accusation": { title: "Political Downfall", description: "False accusations overwhelm you. Despite your competence, rivals remove you from your position. Babylon continues the canal work without you.", ending: "political_downfall", endingType: "bad" },
-            // Added missing scene keys
             "tactical_victory": { title: "Tactical Victory", description: "You achieve victory but at great cost.", ending: "tactical_victory", endingType: "mixed" },
             "peaceful_alliance": { title: "Peaceful Alliance", description: "Your diplomacy secures a peaceful alliance.", ending: "peaceful_alliance", endingType: "good" },
             "backfire": { title: "Backfire", description: "Your plan backfires disastrously.", ending: "backfire", endingType: "bad" },
@@ -483,7 +480,7 @@ const civData = {
     }
 };
 
-// ==================== THEME & BANNER DATA ====================
+// Themes + Banner
 const themes = {
     neutral: {
         primary: '#6c757d',
@@ -533,7 +530,6 @@ const bannerUrls = {
     egypt: 'https://cdn.britannica.com/25/83825-050-F8826674/Anubis-Egyptian-Book-of-the-Dead-dead-c-1275-bce.jpg'
 };
 
-// Helper to convert hex to rgb components
 function hexToRgb(hex) {
     const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
     hex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
@@ -547,16 +543,17 @@ function applyTheme(civKey) {
     for (let key in theme) {
         document.documentElement.style.setProperty(`--${key}`, theme[key]);
     }
-    // Set rgb versions for primary and secondary (for rgba usage)
+
     const primaryRgb = hexToRgb(theme.primary);
     if (primaryRgb) {
         document.documentElement.style.setProperty('--primary-rgb', primaryRgb);
     }
+
     const secondaryRgb = hexToRgb(theme.secondary);
     if (secondaryRgb) {
         document.documentElement.style.setProperty('--secondary-rgb', secondaryRgb);
     }
-    // Change banner with animation
+
     if (bannerUrls[civKey]) {
         setBannerWithAnimation(bannerUrls[civKey]);
     }
@@ -574,31 +571,154 @@ function setBannerWithAnimation(url) {
 }
 
 
-// ==================== USER ACCOUNT & LOCALSTORAGE ====================
-let currentUser = null;               // { email, username, password, pronouns, saveData, comments }
+// Accounts, comments, ratings
+let currentUser = null;
 let currentCiv = null;
 
-// Load user profiles from localStorage or initialize empty object
-let userProfiles = JSON.parse(localStorage.getItem('userProfiles')) || {};
+function readStorage(key, fallbackValue) {
+    try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallbackValue;
+    } catch (error) {
+        console.error(`Problem reading ${key} from localStorage.`, error);
+        return fallbackValue;
+    }
+}
+
+let userProfiles = readStorage('userProfiles', {});
+let comments = readStorage('globalComments', []);
+let anonymousRatings = readStorage('anonymousRatings', []);
 
 function saveUserProfiles() {
     localStorage.setItem('userProfiles', JSON.stringify(userProfiles));
 }
 
-// DOM elements (will be assigned inside DOMContentLoaded)
+function saveComments() {
+    localStorage.setItem('globalComments', JSON.stringify(comments));
+}
+
+function saveRatings() {
+    localStorage.setItem('anonymousRatings', JSON.stringify(anonymousRatings));
+}
+
+function deepCopy(data) {
+    return JSON.parse(JSON.stringify(data));
+}
+
+function formatDate(timestamp) {
+    return new Date(timestamp).toLocaleString();
+}
+
+function getDefaultGameState(civKey) {
+    if (civKey === 'china') {
+        return {
+            currentScene: 'start',
+            choicesMade: 0,
+            dynasty: 'Han',
+            status: 'Scholar',
+            gameEnded: false
+        };
+    }
+
+    if (civKey === 'egypt') {
+        return {
+            currentScene: 'start',
+            choicesMade: 0,
+            dynasty: 'New Kingdom',
+            status: 'Young Official',
+            gameEnded: false
+        };
+    }
+
+    return {
+        currentScene: 'start',
+        choicesMade: 0,
+        dynasty: 'Akkadian Empire',
+        status: 'Rising Official',
+        gameEnded: false
+    };
+}
+
+function normaliseProfiles() {
+    Object.keys(userProfiles).forEach((email) => {
+        const profile = userProfiles[email];
+
+        if (!Array.isArray(profile.saveSlots)) {
+            profile.saveSlots = [null, null, null];
+
+            if (profile.saveData && profile.saveData.civ && profile.saveData.state) {
+                profile.saveSlots[0] = {
+                    slotId: 1,
+                    civ: profile.saveData.civ,
+                    state: deepCopy(profile.saveData.state),
+                    lastSaved: Date.now()
+                };
+            }
+        }
+
+        if (profile.saveSlots.length < 3) {
+            while (profile.saveSlots.length < 3) {
+                profile.saveSlots.push(null);
+            }
+        }
+
+        profile.saveSlots = profile.saveSlots.slice(0, 3).map((slot, index) => {
+            if (!slot) return null;
+            return {
+                slotId: index + 1,
+                civ: slot.civ,
+                state: slot.state || getDefaultGameState(slot.civ || 'china'),
+                lastSaved: slot.lastSaved || Date.now()
+            };
+        });
+
+        if (!Array.isArray(profile.comments)) {
+            profile.comments = [];
+        }
+    });
+
+    saveUserProfiles();
+}
+
+function normaliseComments() {
+    comments = comments.map((comment) => ({
+        id: comment.id || (Date.now() + Math.random()),
+        text: comment.text || '',
+        username: comment.username || 'User',
+        pronouns: comment.pronouns || 'they/them',
+        authorEmail: comment.authorEmail || null,
+        timestampMs: comment.timestampMs || new Date(comment.timestamp).getTime() || Date.now(),
+        parentId: typeof comment.parentId === 'undefined' ? null : comment.parentId
+    }));
+    saveComments();
+}
+
+function normaliseRatings() {
+    anonymousRatings = anonymousRatings.map((rating) => ({
+        id: rating.id || (Date.now() + Math.random()),
+        stars: Number(rating.stars) || 0,
+        text: rating.text || '',
+        timestampMs: rating.timestampMs || new Date(rating.timestamp).getTime() || Date.now()
+    }));
+    saveRatings();
+}
+
+normaliseProfiles();
+normaliseComments();
+normaliseRatings();
+
 let signupEmail, signupUsername, signupPassword, signupPronoun, accountMessage,
-    civRadios, gameSection, displayUsername, displayPronoun, saveGameBtn,
-    restartBtn, resetGameBtn, gameChoiceForm, makeChoiceBtn, gameOptionsEl,
+    civRadios, gameSection, displayUsername, displayPronoun, restartBtn,
+    resetGameBtn, gameChoiceForm, makeChoiceBtn, gameOptionsEl,
     gameEndingEl, endingTitleEl, endingDescriptionEl, historicalContextEl,
     gameTitleEl, gameDescriptionEl, civGameTitle, gameIntro, currentCivDisplay,
     currentDynastyEl, currentStatusEl, choiceCountEl, signupTab, loginTab,
     signupForm, loginForm, loginEmail, loginPassword, newCommentForm, newCommentText,
-    commentsList;
+    commentsList, openEditProfileBtn, editProfileForm, editUsername, editPronoun,
+    editPassword, cancelEditProfileBtn, saveSlotsContainer, ratingForm, ratingStars,
+    ratingText, editingRatingId, cancelRatingEditBtn, ratingsList, ratingSummary;
 
-// ==================== WAIT FOR DOM ====================
-document.addEventListener('DOMContentLoaded', function() {
-
-    // --- Assign DOM elements ---
+document.addEventListener('DOMContentLoaded', function () {
     signupEmail = document.getElementById('signupEmail');
     signupUsername = document.getElementById('signupUsername');
     signupPassword = document.getElementById('signupPassword');
@@ -608,7 +728,6 @@ document.addEventListener('DOMContentLoaded', function() {
     gameSection = document.getElementById('destinyGame');
     displayUsername = document.getElementById('displayUsername');
     displayPronoun = document.getElementById('displayPronoun');
-    saveGameBtn = document.getElementById('saveGameBtn');
     restartBtn = document.getElementById('restartBtn');
     resetGameBtn = document.getElementById('resetGameBtn');
     gameChoiceForm = document.getElementById('gameChoiceForm');
@@ -635,6 +754,20 @@ document.addEventListener('DOMContentLoaded', function() {
     newCommentForm = document.getElementById('newCommentForm');
     newCommentText = document.getElementById('newCommentText');
     commentsList = document.getElementById('commentsList');
+    openEditProfileBtn = document.getElementById('openEditProfileBtn');
+    editProfileForm = document.getElementById('editProfileForm');
+    editUsername = document.getElementById('editUsername');
+    editPronoun = document.getElementById('editPronoun');
+    editPassword = document.getElementById('editPassword');
+    cancelEditProfileBtn = document.getElementById('cancelEditProfileBtn');
+    saveSlotsContainer = document.getElementById('saveSlotsContainer');
+    ratingForm = document.getElementById('ratingForm');
+    ratingStars = document.getElementById('ratingStars');
+    ratingText = document.getElementById('ratingText');
+    editingRatingId = document.getElementById('editingRatingId');
+    cancelRatingEditBtn = document.getElementById('cancelRatingEditBtn');
+    ratingsList = document.getElementById('ratingsList');
+    ratingSummary = document.getElementById('ratingSummary');
 
     function clearAuthFields() {
         signupEmail.value = '';
@@ -645,164 +778,182 @@ document.addEventListener('DOMContentLoaded', function() {
         loginPassword.value = '';
     }
 
-
-
-    // ==================== TAB SWITCHING ====================
-    signupTab.addEventListener('click', () => {
-        signupTab.classList.add('active');
-        loginTab.classList.remove('active');
-        signupForm.classList.add('active');
-        loginForm.classList.remove('active');
-        accountMessage.textContent = '';
+    function setAccountMessage(message, type = '') {
+        accountMessage.textContent = message;
         accountMessage.className = 'account-message';
-    });
-
-    loginTab.addEventListener('click', () => {
-        loginTab.classList.add('active');
-        signupTab.classList.remove('active');
-        loginForm.classList.add('active');
-        signupForm.classList.remove('active');
-        accountMessage.textContent = '';
-        accountMessage.className = 'account-message';
-    });
-
-    // ==================== SIGN UP FORM ====================
-    signupForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        const email = signupEmail.value.trim();
-        const username = signupUsername.value.trim();
-        const password = signupPassword.value.trim();
-        const pronouns = signupPronoun.value;
-
-        if (!email || !username || !password || !pronouns) {
-            accountMessage.textContent = 'All fields are required.';
-            accountMessage.className = 'account-message error';
-            return;
+        if (type) {
+            accountMessage.classList.add(type);
         }
+    }
 
-        // Check for duplicate username (case‑insensitive)
-        const usernameExists = Object.values(userProfiles).some(
-            profile => profile.username.toLowerCase() === username.toLowerCase()
-        );
-        if (usernameExists) {
-            accountMessage.textContent = 'Username already taken. Please choose another.';
-            accountMessage.className = 'account-message error';
-            return;
-        }
-
-        if (userProfiles[email]) {
-            accountMessage.textContent = 'Email already registered. Please log in.';
-            accountMessage.className = 'account-message error';
-            return;
-        }
-
-        // Create new user profile
-        const newUser = {
-            email: email,
-            username: username,
-            password: password,
-            pronouns: pronouns,
-            saveData: null,
-            comments: []
-        };
-        userProfiles[email] = newUser;
-        saveUserProfiles();
-
-        // Log the user in automatically
-        currentUser = newUser;
-        displayUsername.textContent = username;
-        displayPronoun.textContent = pronouns;
-        accountMessage.textContent = `Welcome, ${username}!`;
-        accountMessage.className = 'account-message success';
-
-        // Enable civilization selection
-        civRadios.forEach(r => r.disabled = false);
-
-        // Clear form fields
-        clearAuthFields();
-
-        // Hide game section until a civ is chosen
-        gameSection.style.display = 'none';
-    });
-
-    // ==================== LOGIN FORM ====================
-    loginForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        const email = loginEmail.value.trim();
-        const password = loginPassword.value.trim();
-
-        if (!email || !password) {
-            accountMessage.textContent = 'Please enter email and password.';
-            accountMessage.className = 'account-message error';
-            return;
-        }
-
-        const profile = userProfiles[email];
-        if (!profile || profile.password !== password) {
-            accountMessage.textContent = 'Wrong credentials.';
-            accountMessage.className = 'account-message error';
-            return;
-        }
-
-        currentUser = profile;
-        displayUsername.textContent = profile.username;
-        displayPronoun.textContent = profile.pronouns;
-        accountMessage.textContent = `Welcome back, ${profile.username}!`;
-        accountMessage.className = 'account-message success';
-
-        civRadios.forEach(r => r.disabled = false);
-
-        if (profile.saveData) {
-            const savedCiv = profile.saveData.civ;
-            if (savedCiv && civData[savedCiv]) {
-                const radioToCheck = document.getElementById(`civ-${savedCiv}`);
-                if (radioToCheck) {
-                    radioToCheck.checked = true;
-                    lockCivSelection(savedCiv);
-                    initGame(savedCiv);      // ← This now does everything: restores state, updates banner, title, etc.
-                    gameSection.style.display = 'block';
-                }
-            }
-        } else {
-            gameSection.style.display = 'none';
-        }
-
-        clearAuthFields();
-        renderComments();
-    });
-
-    // ==================== CIVILIZATION RADIO BUTTONS ====================
-    civRadios.forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            if (!currentUser) {
-                alert('Please sign in first.');
-                e.target.checked = false;
-                return;
-            }
-
-            const civValue = e.target.value;
-            const confirmMsg = `Start your journey in ${civData[civValue].name}? You won't be able to change civilization later.`;
-            if (confirm(confirmMsg)) {
-                lockCivSelection(civValue);
-                initGame(civValue);
-            } else {
-                e.target.checked = false;
-            }
-        });
-    });
-
-    function lockCivSelection(selectedValue) {
-        civRadios.forEach(radio => {
-            radio.disabled = true;
-            if (radio.value === selectedValue) {
-                radio.checked = true;
+    function setCivInputsDisabled(shouldDisable) {
+        civRadios.forEach((radio) => {
+            radio.disabled = shouldDisable;
+            if (shouldDisable) {
+                radio.checked = false;
             }
         });
     }
 
-    // ==================== GAME FUNCTIONS ====================
+    function updatePlayerPanel() {
+        if (currentUser) {
+            displayUsername.textContent = currentUser.username;
+            displayPronoun.textContent = currentUser.pronouns;
+        } else {
+            displayUsername.textContent = '—';
+            displayPronoun.textContent = '—';
+        }
+    }
+
+    function fillEditProfileForm() {
+        if (!currentUser) return;
+        editUsername.value = currentUser.username;
+        editPronoun.value = currentUser.pronouns;
+        editPassword.value = '';
+    }
+
+    function openEditProfileForm() {
+        if (!currentUser) {
+            alert('Please log in first.');
+            return;
+        }
+        fillEditProfileForm();
+        editProfileForm.classList.remove('hidden');
+    }
+
+    function closeEditProfileForm() {
+        editProfileForm.classList.add('hidden');
+        editPassword.value = '';
+    }
+
+    function getLatestOccupiedSlot() {
+        if (!currentUser) return null;
+        const occupied = currentUser.saveSlots.filter(Boolean);
+        if (occupied.length === 0) return null;
+        occupied.sort((a, b) => b.lastSaved - a.lastSaved);
+        return occupied[0];
+    }
+
+    function renderSaveSlots() {
+        if (!saveSlotsContainer) return;
+
+        if (!currentUser) {
+            saveSlotsContainer.innerHTML = '<p class="empty-note">Log in to use the save slots.</p>';
+            return;
+        }
+
+        saveSlotsContainer.innerHTML = '';
+
+        currentUser.saveSlots.forEach((slot, index) => {
+            const slotCard = document.createElement('div');
+            slotCard.className = 'save-slot-card';
+
+            const title = document.createElement('h5');
+            title.textContent = `Slot ${index + 1}`;
+            slotCard.appendChild(title);
+
+            const civLine = document.createElement('p');
+            const saveLine = document.createElement('p');
+
+            if (slot) {
+                civLine.textContent = `Civilization: ${civData[slot.civ] ? civData[slot.civ].name : slot.civ}`;
+                saveLine.textContent = `Last saved: ${formatDate(slot.lastSaved)}`;
+            } else {
+                civLine.textContent = 'Civilization: Empty';
+                saveLine.textContent = 'Last saved: —';
+            }
+
+            slotCard.appendChild(civLine);
+            slotCard.appendChild(saveLine);
+
+            const actions = document.createElement('div');
+            actions.className = 'slot-actions';
+
+            const saveBtn = document.createElement('button');
+            saveBtn.type = 'button';
+            saveBtn.className = 'slot-save-btn';
+            saveBtn.textContent = `Save Here`;
+            saveBtn.addEventListener('click', () => saveToSlot(index));
+            actions.appendChild(saveBtn);
+
+            const loadBtn = document.createElement('button');
+            loadBtn.type = 'button';
+            loadBtn.className = 'slot-load-btn';
+            loadBtn.textContent = 'Load';
+            loadBtn.disabled = !slot;
+            loadBtn.addEventListener('click', () => loadFromSlot(index));
+            actions.appendChild(loadBtn);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.className = 'slot-delete-btn';
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.disabled = !slot;
+            deleteBtn.addEventListener('click', () => deleteSlot(index));
+            actions.appendChild(deleteBtn);
+
+            slotCard.appendChild(actions);
+            saveSlotsContainer.appendChild(slotCard);
+        });
+    }
+
+    function saveToSlot(slotIndex) {
+        if (!currentUser || !currentCiv) {
+            alert('Please start a civilization first before saving.');
+            return;
+        }
+
+        currentUser.saveSlots[slotIndex] = {
+            slotId: slotIndex + 1,
+            civ: currentCiv,
+            state: deepCopy(civData[currentCiv].gameState),
+            lastSaved: Date.now()
+        };
+
+        userProfiles[currentUser.email] = currentUser;
+        saveUserProfiles();
+        renderSaveSlots();
+        alert(`Your progress was saved to Slot ${slotIndex + 1}.`);
+    }
+
+    function loadFromSlot(slotIndex) {
+        if (!currentUser) return;
+
+        const slot = currentUser.saveSlots[slotIndex];
+        if (!slot) {
+            alert('That slot is empty.');
+            return;
+        }
+
+        const targetRadio = document.getElementById(`civ-${slot.civ}`);
+        if (targetRadio) {
+            targetRadio.checked = true;
+        }
+
+        initGame(slot.civ, slot.state);
+        alert(`Loaded Slot ${slotIndex + 1}.`);
+    }
+
+    function deleteSlot(slotIndex) {
+        if (!currentUser) return;
+
+        const slot = currentUser.saveSlots[slotIndex];
+        if (!slot) {
+            alert('That slot is already empty.');
+            return;
+        }
+
+        if (!confirm(`Delete the save in Slot ${slotIndex + 1}?`)) {
+            return;
+        }
+
+        currentUser.saveSlots[slotIndex] = null;
+        userProfiles[currentUser.email] = currentUser;
+        saveUserProfiles();
+        renderSaveSlots();
+        alert(`Slot ${slotIndex + 1} was deleted.`);
+    }
+
     function updateGameStats() {
         if (!currentCiv || !civData[currentCiv]) return;
         const state = civData[currentCiv].gameState;
@@ -814,18 +965,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function loadScene(sceneId) {
         if (!currentCiv) return;
+
         const civ = civData[currentCiv];
         const scene = civ.gameScenarios[sceneId];
 
         if (!scene) {
-            console.error("Scene not found:", sceneId);
+            console.error('Scene not found:', sceneId);
             return;
         }
 
+        civ.gameState.currentScene = sceneId;
         gameTitleEl.textContent = scene.title;
+
         let description = scene.description;
         if (currentUser && currentUser.username) {
-            description = `Hello, ${currentUser.username}. ` + description;
+            description = `Hello, ${currentUser.username}. ${description}`;
         }
         gameDescriptionEl.textContent = description;
 
@@ -847,7 +1001,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         makeChoiceBtn.disabled = true;
-        document.querySelectorAll('input[name="gameChoice"]').forEach(radio => {
+        document.querySelectorAll('input[name="gameChoice"]').forEach((radio) => {
             radio.addEventListener('change', () => {
                 makeChoiceBtn.disabled = false;
             });
@@ -858,41 +1012,46 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function chooseOption(selectedRadio) {
         if (!currentCiv) return;
+
         const civ = civData[currentCiv];
         const nextScene = selectedRadio.dataset.next;
         const statusChange = selectedRadio.dataset.status;
 
-        civ.gameState.choicesMade++;
+        civ.gameState.choicesMade += 1;
         if (statusChange) {
             civ.gameState.status = statusChange;
         }
+
+        civ.gameState.currentScene = nextScene;
         updateGameStats();
 
         makeChoiceBtn.disabled = true;
-        document.querySelectorAll('input[name="gameChoice"]').forEach(r => r.disabled = true);
+        document.querySelectorAll('input[name="gameChoice"]').forEach((radio) => {
+            radio.disabled = true;
+        });
 
         setTimeout(() => {
             loadScene(nextScene);
-        }, 800);
+        }, 500);
     }
 
     function showEnding(endingId, endingType) {
         if (!currentCiv) return;
+
         const civ = civData[currentCiv];
         const ending = civ.gameEndings[endingId];
-
         if (!ending) {
-            console.error("Ending not found:", endingId);
+            console.error('Ending not found:', endingId);
             return;
         }
 
         let endingDesc = ending.description;
         if (currentUser && currentUser.username) {
-            endingDesc = `Dear ${currentUser.username}, ` + endingDesc;
+            endingDesc = `Dear ${currentUser.username}, ${endingDesc}`;
         }
+
         endingTitleEl.textContent = ending.title;
         endingDescriptionEl.textContent = endingDesc;
-
         historicalContextEl.innerHTML = `
             <h4>${ending.historicalContext.title}</h4>
             <p>${ending.historicalContext.text}</p>
@@ -902,144 +1061,88 @@ document.addEventListener('DOMContentLoaded', function() {
         gameOptionsEl.innerHTML = '';
         makeChoiceBtn.disabled = true;
 
-        const endingColor = endingType === 'good' ? 'rgba(76, 175, 80, 0.1)' : 
-                          endingType === 'bad' ? 'rgba(244, 67, 54, 0.1)' : 
-                          'rgba(255, 193, 7, 0.1)';
+        if (endingType === 'good') {
+            gameEndingEl.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
+        } else if (endingType === 'bad') {
+            gameEndingEl.style.backgroundColor = 'rgba(244, 67, 54, 0.1)';
+        } else {
+            gameEndingEl.style.backgroundColor = 'rgba(255, 193, 7, 0.1)';
+        }
 
-        gameEndingEl.style.backgroundColor = endingColor;
         civ.gameState.gameEnded = true;
     }
 
-    function initGame(civKey) {
+    function initGame(civKey, savedState = null) {
         if (!currentUser) {
             alert('Please sign in first.');
             return;
         }
+
         currentCiv = civKey;
         const civ = civData[civKey];
-
-        // Apply theme and banner
         applyTheme(civKey);
 
-        if (currentUser.saveData && currentUser.saveData.civ === civKey) {
-            civ.gameState = currentUser.saveData.state;
+        if (savedState) {
+            civ.gameState = deepCopy(savedState);
         } else {
-            civ.gameState = {
-                currentScene: "start",
-                choicesMade: 0,
-                dynasty: civ === civData.china ? "Han" : (civ === civData.egypt ? "New Kingdom" : "Akkadian Empire"),
-                status: civ === civData.china ? "Scholar" : (civ === civData.egypt ? "Young Official" : "Rising Official"),
-                gameEnded: false
-            };
+            civ.gameState = getDefaultGameState(civKey);
         }
 
         updateGameStats();
-        loadScene(civ.gameState.currentScene);
+        loadScene(civ.gameState.currentScene || 'start');
 
         gameSection.style.display = 'block';
         gameEndingEl.classList.add('hidden');
-
         civGameTitle.textContent = `Your Journey: ${civ.name}`;
-        let intro = `Experience life in ancient ${civ.name} through this interactive story.`;
-        if (currentUser.username) {
-            intro = `${currentUser.username}, ${intro}`;
-        }
-        gameIntro.textContent = intro;
+        gameIntro.textContent = `${currentUser.username}, experience life in ancient ${civ.name} through this interactive story.`;
     }
 
-    // ==================== GAME CHOICE FORM SUBMIT ====================
-    gameChoiceForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        if (makeChoiceBtn.disabled) return;
-        const selectedRadio = document.querySelector('input[name="gameChoice"]:checked');
-        if (selectedRadio) {
-            chooseOption(selectedRadio);
-        }
-    });
-
-    // ==================== SAVE GAME ====================
-    saveGameBtn.addEventListener('click', () => {
-        if (!currentUser || !currentCiv) {
-            alert('No active game to save.');
-            return;
-        }
-        currentUser.saveData = {
-            civ: currentCiv,
-            state: civData[currentCiv].gameState
-        };
-        userProfiles[currentUser.email] = currentUser;
-        saveUserProfiles();
-        alert('Game saved!');
-    });
-
-    // ==================== RESET GAME (inside stats) ====================
-    resetGameBtn.addEventListener('click', () => {
-        if (!currentCiv || !currentUser) {
-            alert('No game in progress.');
-            return;
-        }
-        if (confirm('Are you sure you want to reset your progress in this civilization?')) {
-            civData[currentCiv].gameState = {
-                currentScene: "start",
-                choicesMade: 0,
-                dynasty: civData[currentCiv].name === "China" ? "Han" : (civData[currentCiv].name === "Egypt" ? "New Kingdom" : "Akkadian Empire"),
-                status: civData[currentCiv].name === "China" ? "Scholar" : (civData[currentCiv].name === "Egypt" ? "Young Official" : "Rising Official"),
-                gameEnded: false
-            };
-            updateGameStats();
-            loadScene("start");
-            gameEndingEl.classList.add('hidden');
-            gameOptionsEl.classList.remove('hidden');
-        }
-    });
-
-    // ==================== RESTART BUTTON (inside ending) ====================
-    restartBtn.addEventListener('click', () => {
-        if (currentCiv && currentUser) {
-            civData[currentCiv].gameState = {
-                currentScene: "start",
-                choicesMade: 0,
-                dynasty: civData[currentCiv].name === "China" ? "Han" : (civData[currentCiv].name === "Egypt" ? "New Kingdom" : "Akkadian Empire"),
-                status: civData[currentCiv].name === "China" ? "Scholar" : (civData[currentCiv].name === "Egypt" ? "Young Official" : "Rising Official"),
-                gameEnded: false
-            };
-            updateGameStats();
-            loadScene("start");
-            gameEndingEl.classList.add('hidden');
-            gameOptionsEl.classList.remove('hidden');
-        }
-    });
-
-    // ==================== GLOBAL COMMENTS ====================
-    let comments = JSON.parse(localStorage.getItem('globalComments')) || [];
-
-    function saveComments() {
-        localStorage.setItem('globalComments', JSON.stringify(comments));
+    function updateCommentsAfterProfileEdit(oldUsername, oldPronouns) {
+        comments.forEach((comment) => {
+            const sameAuthor = comment.authorEmail === currentUser.email || comment.username === oldUsername;
+            if (sameAuthor) {
+                comment.username = currentUser.username;
+                comment.pronouns = currentUser.pronouns;
+                comment.authorEmail = currentUser.email;
+            }
+        });
+        saveComments();
     }
 
-    function getTimestamp() {
-        return new Date().toLocaleString();
+    function isOwnComment(comment) {
+        if (!currentUser) return false;
+        return comment.authorEmail === currentUser.email;
+    }
+
+    function canEditComment(comment) {
+        return isOwnComment(comment) && (Date.now() - comment.timestampMs <= 10 * 60 * 1000);
     }
 
     function renderComments() {
         if (!commentsList) return;
 
-        const topLevel = comments.filter(c => c.parentId === null);
-        topLevel.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
         commentsList.innerHTML = '';
+        const topLevelComments = comments
+            .filter((comment) => comment.parentId === null)
+            .sort((a, b) => b.timestampMs - a.timestampMs);
 
-        topLevel.forEach(comment => {
-            const commentEl = createCommentElement(comment);
+        if (topLevelComments.length === 0) {
+            commentsList.innerHTML = '<p class="empty-note">No comments yet.</p>';
+            return;
+        }
+
+        topLevelComments.forEach((comment) => {
+            const commentEl = createCommentElement(comment, false);
             commentsList.appendChild(commentEl);
 
-            const replies = comments.filter(c => c.parentId === comment.id);
-            replies.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            const replies = comments
+                .filter((reply) => reply.parentId === comment.id)
+                .sort((a, b) => a.timestampMs - b.timestampMs);
 
             if (replies.length > 0) {
                 const repliesContainer = document.createElement('div');
                 repliesContainer.className = 'replies';
-                replies.forEach(reply => {
+                replies.forEach((reply) => {
                     repliesContainer.appendChild(createCommentElement(reply, true));
                 });
                 commentEl.appendChild(repliesContainer);
@@ -1047,76 +1150,118 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function createCommentElement(comment, isReply = false) {
-        const div = document.createElement('div');
-        div.className = isReply ? 'comment reply' : 'comment';
-        div.dataset.commentId = comment.id;
+    function createCommentElement(comment, isReply) {
+        const wrapper = document.createElement('div');
+        wrapper.className = isReply ? 'comment reply' : 'comment';
+        wrapper.dataset.commentId = comment.id;
 
         const header = document.createElement('div');
         header.className = 'comment-header';
-        header.innerHTML = `
-            <strong>${comment.username}</strong> <span class="pronouns">(${comment.pronouns})</span>
-            <span class="timestamp">${comment.timestamp}</span>
-        `;
-        div.appendChild(header);
+
+        const meta = document.createElement('div');
+        meta.className = 'comment-meta';
+
+        const strong = document.createElement('strong');
+        strong.textContent = comment.username;
+        meta.appendChild(strong);
+
+        const pronouns = document.createElement('span');
+        pronouns.className = 'pronouns';
+        pronouns.textContent = `(${comment.pronouns})`;
+        meta.appendChild(pronouns);
+
+        const timestamp = document.createElement('span');
+        timestamp.className = 'timestamp';
+        timestamp.textContent = formatDate(comment.timestampMs);
+        meta.appendChild(timestamp);
+
+        header.appendChild(meta);
+
+        const actionBox = document.createElement('div');
+        actionBox.className = 'comment-actions';
+
+        if (currentUser && !isReply) {
+            const replyBtn = document.createElement('button');
+            replyBtn.type = 'button';
+            replyBtn.className = 'comment-action-btn';
+            replyBtn.textContent = 'Reply';
+            replyBtn.addEventListener('click', () => {
+                showReplyForm(comment.id, wrapper);
+            });
+            actionBox.appendChild(replyBtn);
+        }
+
+        if (canEditComment(comment)) {
+            const editBtn = document.createElement('button');
+            editBtn.type = 'button';
+            editBtn.className = 'comment-action-btn';
+            editBtn.textContent = 'Edit';
+            editBtn.addEventListener('click', () => {
+                showEditCommentForm(comment.id, wrapper);
+            });
+            actionBox.appendChild(editBtn);
+        }
+
+        if (isOwnComment(comment)) {
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.className = 'comment-action-btn danger-btn';
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.addEventListener('click', () => {
+                deleteComment(comment.id);
+            });
+            actionBox.appendChild(deleteBtn);
+        }
+
+        header.appendChild(actionBox);
+        wrapper.appendChild(header);
 
         const body = document.createElement('div');
         body.className = 'comment-body';
         body.textContent = comment.text;
-        div.appendChild(body);
+        wrapper.appendChild(body);
 
-        const footer = document.createElement('div');
-        footer.className = 'comment-footer';
-        if (currentUser && !isReply) {
-            const replyBtn = document.createElement('button');
-            replyBtn.className = 'reply-btn';
-            replyBtn.textContent = 'Reply';
-            replyBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                showReplyForm(comment.id, div);
-            });
-            footer.appendChild(replyBtn);
-        }
-        if (footer.children.length > 0) {
-            div.appendChild(footer);
-        }
-
-        return div;
+        return wrapper;
     }
 
     function showReplyForm(parentId, commentElement) {
-        const existingForm = commentElement.querySelector('.reply-form');
-        if (existingForm) existingForm.remove();
+        const oldForm = commentElement.querySelector('.reply-form');
+        if (oldForm) {
+            oldForm.remove();
+        }
 
         const form = document.createElement('form');
         form.className = 'reply-form';
         form.innerHTML = `
-            <textarea name="replyText" placeholder="Write your reply..." rows="2" required></textarea>
+            <textarea rows="2" placeholder="Write your reply..." required></textarea>
             <div class="reply-actions">
                 <button type="submit" class="submit-reply">Post Reply</button>
                 <button type="button" class="cancel-reply">Cancel</button>
             </div>
         `;
 
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const replyText = form.querySelector('textarea').value.trim();
-            if (!replyText) return;
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
 
             if (!currentUser) {
-                alert('You must be logged in to reply.');
+                alert('Please log in first.');
                 return;
             }
 
-            const newReply = {
+            const replyText = form.querySelector('textarea').value.trim();
+            if (!replyText) return;
+
+            const reply = {
                 id: Date.now() + Math.random(),
                 text: replyText,
                 username: currentUser.username,
                 pronouns: currentUser.pronouns,
-                timestamp: getTimestamp(),
+                authorEmail: currentUser.email,
+                timestampMs: Date.now(),
                 parentId: parentId
             };
-            comments.push(newReply);
+
+            comments.push(reply);
             saveComments();
             renderComments();
         });
@@ -1126,34 +1271,404 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         commentElement.appendChild(form);
-        form.querySelector('textarea').focus();
     }
 
-    // New top-level comment form
-    newCommentForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        if (!currentUser) {
-            alert('Please sign in to post a comment.');
+    function showEditCommentForm(commentId, commentElement) {
+        const comment = comments.find((item) => item.id === commentId);
+        if (!comment) return;
+
+        const oldEditor = commentElement.querySelector('.comment-edit-box');
+        if (oldEditor) {
+            oldEditor.remove();
+        }
+
+        const editBox = document.createElement('div');
+        editBox.className = 'comment-edit-box';
+        editBox.innerHTML = `
+            <textarea rows="3" required>${comment.text}</textarea>
+            <div class="inline-actions">
+                <button type="button" class="mini-btn save-comment-edit">Save Comment</button>
+                <button type="button" class="mini-btn secondary-btn cancel-comment-edit">Cancel</button>
+            </div>
+        `;
+
+        editBox.querySelector('.save-comment-edit').addEventListener('click', () => {
+            const newText = editBox.querySelector('textarea').value.trim();
+            if (!newText) return;
+            comment.text = newText;
+            saveComments();
+            renderComments();
+        });
+
+        editBox.querySelector('.cancel-comment-edit').addEventListener('click', () => {
+            editBox.remove();
+        });
+
+        commentElement.appendChild(editBox);
+    }
+
+    function deleteComment(commentId) {
+        const targetComment = comments.find((item) => item.id === commentId);
+        if (!targetComment) return;
+
+        if (!confirm('Delete this comment?')) {
             return;
         }
+
+        if (targetComment.parentId === null) {
+            comments = comments.filter((item) => item.id !== commentId && item.parentId !== commentId);
+        } else {
+            comments = comments.filter((item) => item.id !== commentId);
+        }
+
+        saveComments();
+        renderComments();
+    }
+
+    function resetRatingForm() {
+        ratingForm.reset();
+        editingRatingId.value = '';
+        cancelRatingEditBtn.classList.add('hidden');
+        document.getElementById('submitRatingBtn').innerHTML = '<i class="fas fa-paper-plane"></i> Post Rating';
+    }
+
+    function renderRatings() {
+        if (!ratingsList || !ratingSummary) return;
+
+        if (anonymousRatings.length === 0) {
+            ratingSummary.innerHTML = '<p class="empty-note">No ratings yet.</p>';
+            ratingsList.innerHTML = '<p class="empty-note">Be the first to rate the website.</p>';
+            return;
+        }
+
+        const totalStars = anonymousRatings.reduce((sum, rating) => sum + rating.stars, 0);
+        const average = (totalStars / anonymousRatings.length).toFixed(1);
+        ratingSummary.innerHTML = `
+            <p><strong>Average Rating:</strong> ${average} / 5</p>
+            <p><strong>Total Reviews:</strong> ${anonymousRatings.length}</p>
+        `;
+
+        ratingsList.innerHTML = '';
+        const sortedRatings = [...anonymousRatings].sort((a, b) => b.timestampMs - a.timestampMs);
+
+        sortedRatings.forEach((rating) => {
+            const card = document.createElement('div');
+            card.className = 'rating-card';
+
+            const top = document.createElement('div');
+            top.className = 'rating-top';
+            top.innerHTML = `
+                <div>
+                    <strong>Anonymous</strong>
+                    <p class="rating-stars">${'★'.repeat(rating.stars)}${'☆'.repeat(5 - rating.stars)}</p>
+                </div>
+                <div>${formatDate(rating.timestampMs)}</div>
+            `;
+            card.appendChild(top);
+
+            const text = document.createElement('p');
+            text.textContent = rating.text || 'No written review.';
+            card.appendChild(text);
+
+            const actions = document.createElement('div');
+            actions.className = 'rating-actions';
+
+            const editBtn = document.createElement('button');
+            editBtn.type = 'button';
+            editBtn.className = 'rating-action-btn';
+            editBtn.textContent = 'Edit';
+            editBtn.addEventListener('click', () => {
+                editingRatingId.value = rating.id;
+                ratingStars.value = String(rating.stars);
+                ratingText.value = rating.text;
+                cancelRatingEditBtn.classList.remove('hidden');
+                document.getElementById('submitRatingBtn').innerHTML = '<i class="fas fa-check"></i> Update Rating';
+                ratingForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+            actions.appendChild(editBtn);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.className = 'rating-action-btn danger-btn';
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.addEventListener('click', () => {
+                if (!confirm('Delete this rating?')) return;
+                anonymousRatings = anonymousRatings.filter((item) => item.id !== rating.id);
+                saveRatings();
+                renderRatings();
+                if (editingRatingId.value === String(rating.id)) {
+                    resetRatingForm();
+                }
+            });
+            actions.appendChild(deleteBtn);
+
+            card.appendChild(actions);
+            ratingsList.appendChild(card);
+        });
+    }
+
+    function loginUser(profile) {
+        currentUser = userProfiles[profile.email];
+        updatePlayerPanel();
+        setAccountMessage(`Welcome, ${currentUser.username}!`, 'success');
+        setCivInputsDisabled(false);
+        closeEditProfileForm();
+        renderSaveSlots();
+        renderComments();
+
+        const latestSlot = getLatestOccupiedSlot();
+        if (latestSlot) {
+            const latestRadio = document.getElementById(`civ-${latestSlot.civ}`);
+            if (latestRadio) {
+                latestRadio.checked = true;
+            }
+            initGame(latestSlot.civ, latestSlot.state);
+        } else {
+            gameSection.style.display = 'none';
+            applyTheme('neutral');
+        }
+    }
+
+    // ----- Auth tabs -----
+    signupTab.addEventListener('click', () => {
+        signupTab.classList.add('active');
+        loginTab.classList.remove('active');
+        signupForm.classList.add('active');
+        loginForm.classList.remove('active');
+        setAccountMessage('');
+    });
+
+    loginTab.addEventListener('click', () => {
+        loginTab.classList.add('active');
+        signupTab.classList.remove('active');
+        loginForm.classList.add('active');
+        signupForm.classList.remove('active');
+        setAccountMessage('');
+    });
+
+    // ----- Sign up -----
+    signupForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const email = signupEmail.value.trim();
+        const username = signupUsername.value.trim();
+        const password = signupPassword.value.trim();
+        const pronouns = signupPronoun.value;
+
+        if (!email || !username || !password || !pronouns) {
+            setAccountMessage('Please complete all sign up fields.', 'error');
+            return;
+        }
+
+        const usernameTaken = Object.values(userProfiles).some((profile) => {
+            return profile.username.toLowerCase() === username.toLowerCase();
+        });
+
+        if (usernameTaken) {
+            setAccountMessage('Username already taken.', 'error');
+            return;
+        }
+
+        if (userProfiles[email]) {
+            setAccountMessage('That email is already registered.', 'error');
+            return;
+        }
+
+        userProfiles[email] = {
+            email: email,
+            username: username,
+            password: password,
+            pronouns: pronouns,
+            saveSlots: [null, null, null],
+            comments: []
+        };
+
+        saveUserProfiles();
+        clearAuthFields();
+        loginUser(userProfiles[email]);
+    });
+
+    // ----- Login -----
+    loginForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const email = loginEmail.value.trim();
+        const password = loginPassword.value.trim();
+        const profile = userProfiles[email];
+
+        if (!profile || profile.password !== password) {
+            setAccountMessage('Wrong email or password.', 'error');
+            return;
+        }
+
+        clearAuthFields();
+        loginUser(profile);
+    });
+
+    // ----- Edit profile -----
+    openEditProfileBtn.addEventListener('click', openEditProfileForm);
+    cancelEditProfileBtn.addEventListener('click', closeEditProfileForm);
+
+    editProfileForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        if (!currentUser) return;
+
+        const oldUsername = currentUser.username;
+        const oldPronouns = currentUser.pronouns;
+        const newUsername = editUsername.value.trim();
+        const newPronouns = editPronoun.value;
+        const newPassword = editPassword.value.trim();
+
+        if (!newUsername || !newPronouns) {
+            alert('Please complete the profile form.');
+            return;
+        }
+
+        const usernameTaken = Object.values(userProfiles).some((profile) => {
+            return profile.email !== currentUser.email && profile.username.toLowerCase() === newUsername.toLowerCase();
+        });
+
+        if (usernameTaken) {
+            alert('That username is already being used.');
+            return;
+        }
+
+        currentUser.username = newUsername;
+        currentUser.pronouns = newPronouns;
+        if (newPassword) {
+            currentUser.password = newPassword;
+        }
+
+        userProfiles[currentUser.email] = currentUser;
+        saveUserProfiles();
+        updateCommentsAfterProfileEdit(oldUsername, oldPronouns);
+        updatePlayerPanel();
+        renderComments();
+        closeEditProfileForm();
+        alert('Profile updated.');
+    });
+
+    // ----- Civilization choice -----
+    civRadios.forEach((radio) => {
+        radio.addEventListener('change', (event) => {
+            if (!currentUser) {
+                alert('Please sign in first.');
+                event.target.checked = false;
+                return;
+            }
+
+            const civValue = event.target.value;
+            const proceed = confirm(`Start a fresh game in ${civData[civValue].name}? Save your current run first if you still need it.`);
+            if (!proceed) {
+                event.target.checked = false;
+                return;
+            }
+
+            initGame(civValue);
+        });
+    });
+
+    // ----- Game form -----
+    gameChoiceForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        if (makeChoiceBtn.disabled) return;
+
+        const selectedRadio = document.querySelector('input[name="gameChoice"]:checked');
+        if (selectedRadio) {
+            chooseOption(selectedRadio);
+        }
+    });
+
+    resetGameBtn.addEventListener('click', () => {
+        if (!currentCiv) {
+            alert('Start a game first.');
+            return;
+        }
+
+        if (!confirm('Reset the current game?')) {
+            return;
+        }
+
+        civData[currentCiv].gameState = getDefaultGameState(currentCiv);
+        updateGameStats();
+        loadScene('start');
+        gameEndingEl.classList.add('hidden');
+    });
+
+    restartBtn.addEventListener('click', () => {
+        if (!currentCiv) return;
+        civData[currentCiv].gameState = getDefaultGameState(currentCiv);
+        updateGameStats();
+        loadScene('start');
+        gameEndingEl.classList.add('hidden');
+    });
+
+    // ----- New top-level comment -----
+    newCommentForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        if (!currentUser) {
+            alert('Please log in before posting a comment.');
+            return;
+        }
+
         const text = newCommentText.value.trim();
         if (!text) return;
 
-        const newComment = {
+        comments.push({
             id: Date.now() + Math.random(),
             text: text,
             username: currentUser.username,
             pronouns: currentUser.pronouns,
-            timestamp: getTimestamp(),
+            authorEmail: currentUser.email,
+            timestampMs: Date.now(),
             parentId: null
-        };
-        comments.push(newComment);
+        });
+
         saveComments();
         newCommentText.value = '';
         renderComments();
     });
 
-    // Initial render of comments
-    renderComments();
+    // ----- Rating -----
+    ratingForm.addEventListener('submit', (event) => {
+        event.preventDefault();
 
-}); // end DOMContentLoaded
+        const stars = Number(ratingStars.value);
+        const text = ratingText.value.trim();
+        if (!stars) {
+            alert('Please select a star rating.');
+            return;
+        }
+
+        if (editingRatingId.value) {
+            const ratingToEdit = anonymousRatings.find((item) => String(item.id) === editingRatingId.value);
+            if (ratingToEdit) {
+                ratingToEdit.stars = stars;
+                ratingToEdit.text = text;
+                ratingToEdit.timestampMs = Date.now();
+            }
+        } else {
+            anonymousRatings.push({
+                id: Date.now() + Math.random(),
+                stars: stars,
+                text: text,
+                timestampMs: Date.now()
+            });
+        }
+
+        saveRatings();
+        renderRatings();
+        resetRatingForm();
+    });
+
+    cancelRatingEditBtn.addEventListener('click', resetRatingForm);
+
+    // ----- Functions -----
+    setCivInputsDisabled(true);
+    updatePlayerPanel();
+    renderSaveSlots();
+    renderComments();
+    renderRatings();
+});

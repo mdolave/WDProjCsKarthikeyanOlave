@@ -1,7 +1,7 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
+   <!-- edits here are made with help of my tutor who helped explain CRUD and localstorage for comments and edit profile  -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Clay and the Crown - Life Simulator</title>
@@ -29,10 +29,9 @@
         </div>
     </nav>
 
-    <!-- Banner Section -->
+    <!-- Banner -->
     <section class="banner">
         <div class="banner-image">
-            <!-- Neutral banner (changed from unsplash to the specified initial image) -->
             <img src="https://miro.medium.com/v2/resize:fit:2000/0*1mEffXajVruXViwd" alt="Ancient Civilizations">
             <figcaption>Historical Journey</figcaption>
             <div class="banner-overlay">
@@ -43,17 +42,17 @@
     </section>
 
     <main class="main-content">
-        <!-- Sign-Up / Login Section -->
+        <!-- Sign-Up/Login -->
         <div class="signup-section">
             <h3><i class="fas fa-user-plus"></i> Sign In / Create Account</h3>
 
-            <!-- Tab Buttons -->
+            <!-- Buttons -->
             <div class="auth-tabs">
                 <button class="auth-tab active" id="signupTab">Sign Up</button>
                 <button class="auth-tab" id="loginTab">Log In</button>
             </div>
 
-            <!-- Sign-Up Form -->
+            <!-- Sign-Up -->
             <form id="signupForm" class="auth-fields active">
                 <input type="email" id="signupEmail" placeholder="Email" required>
                 <input type="text" id="signupUsername" placeholder="Username" required>
@@ -143,15 +142,33 @@
                             <h4><i class="fas fa-user"></i> Player</h4>
                             <p><span class="stat-label">Username:</span> <span id="displayUsername">—</span></p>
                             <p><span class="stat-label">Pronouns:</span> <span id="displayPronoun">—</span></p>
+                            <div class="profile-actions">
+                                <button id="openEditProfileBtn" type="button" class="form-btn mini-btn"><i class="fas fa-pen"></i> Edit Profile</button>
+                            </div>
+
+                            <form id="editProfileForm" class="edit-profile-form hidden">
+                                <input type="text" id="editUsername" placeholder="New username" required>
+                                <select id="editPronoun" required>
+                                    <option value="he/him">he/him</option>
+                                    <option value="she/her">she/her</option>
+                                    <option value="they/them">they/them</option>
+                                </select>
+                                <input type="password" id="editPassword" placeholder="New password (optional)">
+                                <div class="inline-actions">
+                                    <button type="submit" class="form-btn mini-btn"><i class="fas fa-check"></i> Save Profile</button>
+                                    <button id="cancelEditProfileBtn" type="button" class="form-btn mini-btn secondary-btn">Cancel</button>
+                                </div>
+                            </form>
                         </div>
 
-                        <!-- Save Progress Button -->
+                        <!-- Save Slots -->
                         <div class="save-panel">
-                            <button id="saveGameBtn" class="form-btn save-btn"><i class="fas fa-save"></i> Save Progress</button>
+                            <h4><i class="fas fa-save"></i> Save Slots</h4>
+                            <div id="saveSlotsContainer" class="save-slots-container"></div>
                         </div>
                         
                         <div class="game-hint">
-                            <p><i class="fas fa-lightbulb"></i> <strong>Hint:</strong> Your game is auto-saved when you sign in. Use "Save Progress" to manual save.</p>
+                            <p><i class="fas fa-lightbulb"></i> <strong>Hint:</strong> Pick a civilization, play, then save your progress to any slot. You can also load or delete a slot later.</p>
                         </div>
                     </div>
                 </div>
@@ -161,6 +178,7 @@
         <!-- Comments Section -->
         <section class="comments-section">
             <h3><i class="fas fa-comments"></i> Share Your Experience</h3>
+            <p class="section-note">Log in first if you want to comment, reply, edit, or delete your own comments.</p>
 
             <!-- Form for new top-level comments -->
             <div class="new-comment">
@@ -172,6 +190,33 @@
 
             <!-- Container where all comments and replies will be displayed -->
             <div id="commentsList" class="comments-list"></div>
+        </section>
+
+        <section class="ratings-section">
+            <h3><i class="fas fa-star"></i> Anonymous Ratings</h3>
+            <p class="section-note">Anyone can leave a rating. Reviews are shown as anonymous.</p>
+
+            <form id="ratingForm" class="rating-form">
+                <input type="hidden" id="editingRatingId">
+                <label for="ratingStars">Stars</label>
+                <select id="ratingStars" required>
+                    <option value="" selected disabled>Select rating</option>
+                    <option value="5">5 - Excellent</option>
+                    <option value="4">4 - Good</option>
+                    <option value="3">3 - Okay</option>
+                    <option value="2">2 - Needs work</option>
+                    <option value="1">1 - Poor</option>
+                </select>
+                <label for="ratingText">Short review (optional)</label>
+                <textarea id="ratingText" rows="3" placeholder="Write a short review..."></textarea>
+                <div class="inline-actions">
+                    <button type="submit" id="submitRatingBtn" class="form-btn"><i class="fas fa-paper-plane"></i> Post Rating</button>
+                    <button type="button" id="cancelRatingEditBtn" class="form-btn secondary-btn hidden">Cancel Edit</button>
+                </div>
+            </form>
+
+            <div class="rating-summary" id="ratingSummary"></div>
+            <div id="ratingsList" class="ratings-list"></div>
         </section>
 
     <!-- Footer with References -->
